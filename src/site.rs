@@ -9,7 +9,7 @@
 use crate::types::{Any, HashMap};
 
 use beef::lean::Cow;
-use ramhorns::Content;
+use ramhorns_ext::Content;
 use serde::{Deserialize, Serialize};
 
 /// Information about the site usable in templates

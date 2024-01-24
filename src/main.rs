@@ -13,7 +13,7 @@ static GLOBAL: MiMalloc = MiMalloc;
 use blades::*;
 
 use beef::lean::Cow;
-use ramhorns::{Content, Ramhorns, Template};
+use ramhorns_ext::{Content, Ramhorns, Template};
 use serde::Deserialize;
 use serde_cmd::CmdBorrowed;
 
@@ -175,7 +175,7 @@ enum Error {
     #[error("I/O error: {0}")]
     Io(#[from] std::io::Error),
     #[error("Template error: {0}")]
-    Ramhorns(#[from] ramhorns::Error),
+    Ramhorns(#[from] ramhorns_ext::Error),
     #[error("Error parsing {1}: {0}")]
     Parse(ParseError, Box<str>),
     #[error("JSON error: {0}")]
@@ -405,7 +405,7 @@ fn colocate_assets(config: &Config) -> Result<(), io::Error> {
 }
 
 /// Load the templates from the directories specified by the config.
-fn load_templates(config: &Config) -> Result<Ramhorns, ramhorns::Error> {
+fn load_templates(config: &Config) -> Result<Ramhorns, ramhorns_ext::Error> {
     fs::create_dir_all(TEMPLATE_DIR)?;
     let mut templates = Ramhorns::from_folder(TEMPLATE_DIR)?;
     if !config.theme.is_empty() {

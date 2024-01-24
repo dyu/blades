@@ -25,7 +25,7 @@ impl Parser for Toml {
 
 #[bench]
 fn fnv_hashmap(b: &mut Bencher) {
-    let tpl = ramhorns::Template::new(SOURCE).unwrap();
+    let tpl = ramhorns_ext::Template::new(SOURCE).unwrap();
 
     let mut map: std::collections::HashMap<_, _, fnv::FnvBuildHasher> = Default::default();
     map.insert("title", "Hello, Ramhorns!");
@@ -37,7 +37,7 @@ fn fnv_hashmap(b: &mut Bencher) {
 
 #[bench]
 fn blades_hashmap(b: &mut Bencher) {
-    let tpl = ramhorns::Template::new(SOURCE).unwrap();
+    let tpl = ramhorns_ext::Template::new(SOURCE).unwrap();
 
     let mut map = blades::HashMap::default();
     map.insert("title", "Hello, Ramhorns!");

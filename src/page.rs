@@ -13,7 +13,7 @@ use crate::taxonomies::{Classification, Taxonomies};
 use crate::types::{Ancestors, Any, DateTime, HashMap};
 
 use beef::lean::Cow;
-use ramhorns::{
+use ramhorns_ext::{
     encoding::Encoder, traits::ContentSequence, Content, Error, Ramhorns, Section, Template,
 };
 use serde::{Deserialize, Serialize};
@@ -716,15 +716,16 @@ impl<'p, 'r> Content for PageList<'p, 'r> {
     }
 
     #[inline]
-    fn render_section<C, E>(&self, section: Section<C>, encoder: &mut E) -> Result<(), E::Error>
+    fn render_section<C, E, IC>(&self, section: Section<C>, encoder: &mut E, content: Option<&IC>) -> Result<(), E::Error>
     where
         C: ContentSequence,
         E: Encoder,
+        IC: Content,
     {
         let range = self.range.clone();
         for page in self.all[range].iter().filter(|p| !p.hidden) {
             page.by_ref(self.all, self.active, self.site_url)
-                .render_section(section, encoder)?;
+                .render_section(section, encoder, content)?;
         }
 
         Ok(())
@@ -775,15 +776,16 @@ impl<'p, 'r> Content for Pictures<'p, 'r> {
     }
 
     #[inline]
-    fn render_section<C, E>(&self, section: Section<C>, encoder: &mut E) -> Result<(), E::Error>
+    fn render_section<C, E, IC>(&self, section: Section<C>, encoder: &mut E, content: Option<&IC>) -> Result<(), E::Error>
     where
         C: ContentSequence,
         E: Encoder,
+        IC: Content,
     {
         for picture in self.0 {
             picture
                 .by_ref(self.1, self.2)
-                .render_section(section, encoder)?;
+                .render_section(section, encoder, content)?;
         }
 
         Ok(())

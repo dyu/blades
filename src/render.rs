@@ -15,7 +15,7 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-use ramhorns::{Content, Template};
+use ramhorns_ext::{Content, Template};
 
 #[inline]
 pub(crate) fn render<P, C>(
@@ -54,7 +54,7 @@ impl<'p> Meta<'p, '_> {
         template: &str,
         path: &Path,
         buffer: &mut Vec<u8>,
-    ) -> Result<(), ramhorns::Error> {
+    ) -> Result<(), ramhorns_ext::Error> {
         let _ = Template::new(template)?.render_to_writer(buffer, self);
         fs::write(path.join(name), &buffer)?;
         buffer.clear();
@@ -69,7 +69,7 @@ pub fn render_meta<'p>(
     taxons: &Classification<'p, '_>,
     output_dir: &Path,
     buffer: &mut Vec<u8>,
-) -> Result<(), ramhorns::Error> {
+) -> Result<(), ramhorns_ext::Error> {
     let pages = PageList::new(pages, 0..pages.len(), 0, &site.url);
     let meta = Meta(DateTime::now(), pages, TaxonList(taxons), site);
 

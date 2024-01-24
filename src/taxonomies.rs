@@ -14,7 +14,7 @@ use crate::types::HashMap;
 use arrayvec::ArrayVec;
 use beef::lean::Cow;
 use hashbrown::hash_map::Entry;
-use ramhorns::{encoding::Encoder, traits::ContentSequence, Content, Error, Section};
+use ramhorns_ext::{encoding::Encoder, traits::ContentSequence, Content, Error, Section};
 use serde::{Deserialize, Serialize};
 
 use std::cmp::Reverse;
@@ -310,13 +310,14 @@ impl<'t, 'r> Content for TaxDict<'t, 'r> {
     }
 
     #[inline]
-    fn render_section<C, E>(&self, section: Section<C>, encoder: &mut E) -> Result<(), E::Error>
+    fn render_section<C, E, IC>(&self, section: Section<C>, encoder: &mut E, content: Option<&IC>) -> Result<(), E::Error>
     where
         C: ContentSequence,
         E: Encoder,
+        IC: Content,
     {
         for (key, pages) in self.0.iter() {
-            section.with(&Coupled(key, pages)).render(encoder)?;
+            section.with(&Coupled(key, pages)).render(encoder, content)?;
         }
         Ok(())
     }
@@ -329,13 +330,14 @@ impl<'t, 'r> Content for TaxonList<'t, 'r> {
     }
 
     #[inline]
-    fn render_section<C, E>(&self, section: Section<C>, encoder: &mut E) -> Result<(), E::Error>
+    fn render_section<C, E, IC>(&self, section: Section<C>, encoder: &mut E, content: Option<&IC>) -> Result<(), E::Error>
     where
         C: ContentSequence,
         E: Encoder,
+        IC: Content,
     {
         for taxonomy in self.0.values() {
-            section.with(taxonomy).render(encoder)?;
+            section.with(taxonomy).render(encoder, content)?;
         }
         Ok(())
     }

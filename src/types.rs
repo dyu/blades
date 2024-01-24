@@ -8,9 +8,9 @@
 // along with Blades.  If not, see <http://www.gnu.org/licenses/>
 use beef::lean::Cow;
 use chrono::{DateTime as CDateTime, Datelike, FixedOffset, NaiveDate, NaiveDateTime, Timelike};
-use ramhorns::encoding::Encoder;
-use ramhorns::traits::ContentSequence;
-use ramhorns::{Content, Section};
+use ramhorns_ext::encoding::Encoder;
+use ramhorns_ext::traits::ContentSequence;
+use ramhorns_ext::{Content, Section};
 use serde::de::{self, Deserialize, Deserializer, Visitor};
 
 use std::borrow::Borrow;
@@ -90,11 +90,12 @@ impl<'a> Content for Ancestors<'a> {
         Ok(())
     }
 
-    #[inline]
-    fn render_section<C, E>(&self, section: Section<C>, encoder: &mut E) -> Result<(), E::Error>
+    // #[inline]
+    fn render_section<C, E, IC>(&self, section: Section<C>, encoder: &mut E, content: Option<&IC>) -> Result<(), E::Error>
     where
         C: ContentSequence,
         E: Encoder,
+        IC: Content,
     {
         let s = self.0.as_ref();
         if s.is_empty() {
@@ -105,11 +106,11 @@ impl<'a> Content for Ancestors<'a> {
         for (i, sep) in s.match_indices(is_separator) {
             section
                 .with(&Segment(&s[previous..i], &s[0..i]))
-                .render(encoder)?;
+                .render(encoder, content)?;
             previous = i + sep.len();
         }
         if !s.contains(is_separator) {
-            section.with(&Segment(s, s)).render(encoder)?;
+            section.with(&Segment(s, s)).render(encoder, content)?;
         }
         Ok(())
     }
@@ -187,18 +188,19 @@ impl<'a> Content for Any<'a> {
     }
 
     #[inline]
-    fn render_section<C, E>(&self, section: Section<C>, encoder: &mut E) -> Result<(), E::Error>
+    fn render_section<C, E, IC>(&self, section: Section<C>, encoder: &mut E, content: Option<&IC>) -> Result<(), E::Error>
     where
         C: ContentSequence,
         E: Encoder,
+        IC: Content,
     {
         match self {
-            Any::List(vec) => vec.render_section(section, encoder),
-            Any::Map(map) => map.render_section(section, encoder),
-            Any::DateTime(dt) => dt.render_section(section, encoder),
+            Any::List(vec) => vec.render_section(section, encoder, content),
+            Any::Map(map) => map.render_section(section, encoder, content),
+            Any::DateTime(dt) => dt.render_section(section, encoder, content),
             _ => {
                 if self.is_truthy() {
-                    section.render(encoder)
+                    section.render(encoder, content)
                 } else {
                     Ok(())
                 }
@@ -274,12 +276,13 @@ impl DateTime {
 
 impl Content for DateTime {
     #[inline]
-    fn render_section<C, E>(&self, section: Section<C>, encoder: &mut E) -> Result<(), E::Error>
+    fn render_section<C, E, IC>(&self, section: Section<C>, encoder: &mut E, content: Option<&IC>) -> Result<(), E::Error>
     where
         C: ContentSequence,
         E: Encoder,
+        IC: Content,
     {
-        section.with(self).render(encoder)
+        section.with(self).render(encoder, content)
     }
 
     #[inline]
@@ -436,13 +439,14 @@ impl<K: Borrow<str> + Hash + Eq, V: Content> Content for HashMap<K, V> {
 
     /// Render a section with self.
     #[inline]
-    fn render_section<C, E>(&self, section: Section<C>, encoder: &mut E) -> Result<(), E::Error>
+    fn render_section<C, E, IC>(&self, section: Section<C>, encoder: &mut E, content: Option<&IC>) -> Result<(), E::Error>
     where
         C: ContentSequence,
         E: Encoder,
+        IC: Content,
     {
         if self.is_truthy() {
-            section.with(self).render(encoder)
+            section.with(self).render(encoder, content)
         } else {
             Ok(())
         }
@@ -493,7 +497,7 @@ impl<K: Borrow<str> + Hash + Eq, V: Content> Content for HashMap<K, V> {
         E: Encoder,
     {
         match self.raw_entry().from_hash(hash, |_| true) {
-            Some((_, v)) => v.render_section(section, encoder).map(|_| true),
+            Some((_, v)) => v.render_section(section, encoder, Option::<&()>::None).map(|_| true),
             None => Ok(false),
         }
     }
@@ -511,7 +515,7 @@ impl<K: Borrow<str> + Hash + Eq, V: Content> Content for HashMap<K, V> {
         E: Encoder,
     {
         match self.raw_entry().from_hash(hash, |_| true) {
-            Some((_, v)) => v.render_inverse(section, encoder).map(|_| true),
+            Some((_, v)) => v.render_inverse(section, encoder, Option::<&()>::None).map(|_| true),
             None => Ok(false),
         }
     }
@@ -554,7 +558,7 @@ mod test {
         use super::HashMap;
 
         let source = "<title>{{title}}</title><h1>{{ title }}</h1><div>{{body}}</div>";
-        let tpl = ramhorns::Template::new(source).unwrap();
+        let tpl = ramhorns_ext::Template::new(source).unwrap();
 
         let mut map = HashMap::default();
 
