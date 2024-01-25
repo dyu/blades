@@ -12,7 +12,9 @@ readme = "README.md"
 homepage = "https://getblades.org"
 
 [dependencies]
-ramhorns = "0.14"
+#ramhorns = "0.14"
+#ramhorns = { git = "https://github.com/dyu/ramhorns.git", branch = "main" }
+ramhorns = { path = "../ramhorns/ramhorns" }
 arrayvec = { version = "0.7", features = ["serde"] }
 beef = { version = "0.5", features = ["impl_serde"]}
 serde = { version = "^1.0.126", features = ["derive"] }
