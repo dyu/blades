@@ -245,6 +245,24 @@ impl<'a> Content for Any<'a> {
             _ => Ok(false),
         }
     }
+    
+    #[inline]
+    fn render_field_condition<C, E>(
+        &self,
+        hash: u64,
+        name: &str,
+        section: Section<C>,
+        encoder: &mut E,
+    ) -> Result<bool, E::Error>
+    where
+        C: ContentSequence,
+        E: Encoder,
+    {
+        match self {
+            Any::Map(map) => map.render_field_condition(hash, name, section, encoder),
+            _ => Ok(false),
+        }
+    }
 
     #[inline]
     fn render_field_inverse<C, E>(
@@ -494,6 +512,24 @@ impl<K: Borrow<str> + Hash + Eq, V: Content> Content for HashMap<K, V> {
     {
         match self.raw_entry().from_hash(hash, |_| true) {
             Some((_, v)) => v.render_section(section, encoder).map(|_| true),
+            None => Ok(false),
+        }
+    }
+    
+    #[inline]
+    fn render_field_condition<C, E>(
+        &self,
+        hash: u64,
+        _name: &str,
+        section: Section<C>,
+        encoder: &mut E,
+    ) -> Result<bool, E::Error>
+    where
+        C: ContentSequence,
+        E: Encoder,
+    {
+        match self.raw_entry().from_hash(hash, |_| true) {
+            Some((_, v)) => v.render_condition(section, encoder).map(|_| true),
             None => Ok(false),
         }
     }
