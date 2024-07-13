@@ -473,7 +473,8 @@ fn build(config: &Config) -> Result<(), Error> {
     let num_threads = thread::available_parallelism()
         .map(|n| n.get())
         .unwrap_or(1);
-    let num_threads = cmp::min(1, cmp::max(num_threads - 1, num_pages / MIN_PER_THREAD));
+    // ensure min thread count is 1
+    let num_threads = cmp::max(1, cmp::max(num_threads - 1, num_pages / MIN_PER_THREAD));
     let per_thread = (num_pages / num_threads) + 1;
 
     let (templates, pages) = thread::scope(|s| {
